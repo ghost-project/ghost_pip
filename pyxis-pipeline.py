@@ -161,13 +161,14 @@ def meqskymodel(point_sources,num_cal_sources=0):
     v.CALORNOT = ''
    
 #Simulate the visibilities
-def sim_function(cal=False):
+def sim_function(cal=False,whole=False):
     
     options = {}
     options['ms_sel.msname']=II("${MS}")     
     options['ms_sel.tile_size']=get_time_slots()
     if cal:
-       v.CALORNOT = "cal_model"
+       if not whole: 
+          v.CALORNOT = "cal_model"
        options['ms_sel.output_column']="DATA"
     else:
        options['ms_sel.output_column']="CORRECTED_DATA"
@@ -200,7 +201,7 @@ def runall():
     fov_v = 3 #degrees #the field of view in degrees
 
     #only do stefcal or not
-    skip_LM = False
+    skip_LM = True
 
     #contain all the pointsources
     point_sources = np.zeros((num_sources_v,3))
@@ -213,7 +214,7 @@ def runall():
     #ra0,dec0 = get_field_center()
     
     #generate true and calibration sky models from point_sources 
-    meqskymodel(point_sources,num_cal_sources=num_cal_sources_v)
+    #meqskymodel(point_sources,num_cal_sources=num_cal_sources_v)
     
     #simulate complete skymodel --- store in CORRECTED_DATA  
     sim_function(cal=False)
@@ -261,5 +262,19 @@ def runall():
     imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
     v.CALORNOT = ''
 
+    #perform STEFcal calibration (distilation)
     sim_function(cal=False)
+    sim_function(cal=True,whole=True)
     
+    cal_function(type_cal="STEF")
+    v.CALORNOT = "cal_app_STEF"
+    imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
+    v.CALORNOT = ''
+    v.CALORNOT = "cal_whole_STEF"
+    imager.make_image(column="DATA",dirty=options,restore=False)
+    v.CALORNOT = ''
+    residual()
+    v.CALORNOT = "cal_res_dist_STEF"
+    imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
+    v.CALORNOT = ''
+
