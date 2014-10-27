@@ -39,13 +39,15 @@ def image_settings(npix=2048,cellsize="11arcsec",mode ="channel",stokes="I",weig
     imager.threshold = threshold
     imager.mode = mode
     imager.CLEAN_ALGORITHM = clean_alg
+    
 
 #Creating advanced pyxis imager settings
-def image_advanced_settings(img_nchan=1,img_chanstart=0,img_chanstep=1):
+def image_advanced_settings(img_nchan=1,img_chanstart=0,img_chanstep=1,nchan=1):
     options = {}
     options["img_nchan"] = img_nchan
     options["img_chanstart"] = img_chanstart
     options["img_chanstep"] = img_chanstep
+    options["nchan"] = nchan
     return options
 
 #generate flux values of sources (powe law distribution) 
@@ -200,7 +202,7 @@ def runall():
     #alpha_v = 5 #Power low distribution parameter
     num_sources_v = 2 #how many sources
     num_cal_sources_v = 1#how many sources in calibration model
-    fov_v = 3 #degrees #the field of view in degrees
+    #fov_v = 3 #degrees #the field of view in degrees
 
     #only do stefcal or not
     skip_LM = True
@@ -227,8 +229,8 @@ def runall():
     #sim_function(cal=True)
     
     #set up imager
-    #image_settings()
-    #opt = image_advanced_settings()
+    image_settings()
+    options = image_advanced_settings()
 
     #make images of complete sky and calibrated sky model
     #imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
@@ -269,6 +271,7 @@ def runall():
        v.CALORNOT = ''
     else: #perform STEFcal calibration (distilation)
        sim_function(cal=True,whole=True)
+       sim_function(cal=False)
     
        cal_function(type_cal="STEF")
        v.CALORNOT = "cal_app_STEF"
