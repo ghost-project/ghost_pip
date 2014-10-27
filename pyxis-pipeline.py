@@ -222,25 +222,25 @@ def runall():
     meqskymodel(point_sources,num_cal_sources=num_cal_sources_v)
     
     #simulate complete skymodel --- store in CORRECTED_DATA  
-    sim_function(cal=False)
+    #sim_function(cal=False)
     #simulate calibration skymodel --- store in DATA
-    sim_function(cal=True)
+    #sim_function(cal=True)
     
     #set up imager
-    image_settings()
-    opt = image_advanced_settings()
+    #image_settings()
+    #opt = image_advanced_settings()
 
     #make images of complete sky and calibrated sky model
-    imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
-    v.CALORNOT = "cal_model"
-    imager.make_image(column="DATA",dirty=options,restore=False)
-    v.CALORNOT = ''
+    #imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
+    #v.CALORNOT = "cal_model"
+    #imager.make_image(column="DATA",dirty=options,restore=False)
+    #v.CALORNOT = ''
 
     #determine residual CORRECTED_DATA-DATA and image
-    residual()
-    v.CALORNOT = "res"
-    imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
-    v.CALORNOT = ''
+    #residual()
+    #v.CALORNOT = "res"
+    #imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
+    #v.CALORNOT = ''
 
     #perform LM calibration
     if not (skip_LM):
