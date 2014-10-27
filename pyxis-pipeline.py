@@ -161,6 +161,8 @@ def meqskymodel(point_sources,num_cal_sources=0):
     v.CALORNOT = ''
    
 #Simulate the visibilities
+# If cal is True store in DATA else store in CORRECTED DATA, if cal true sim whole sky model if whole is true else calibration model.
+# If cal is False sim complete sky model  
 def sim_function(cal=False,whole=False):
     
     options = {}
@@ -195,26 +197,29 @@ def cal_function(type_cal="LM"):
     v.CALORNOT = ''
 
 def runall():
-    alpha_v = 5 #Power low distribution parameter
-    num_sources_v = 1000 #how many sources
-    num_cal_sources_v = 100 #how many sources in calibration model
+    #alpha_v = 5 #Power low distribution parameter
+    num_sources_v = 2 #how many sources
+    num_cal_sources_v = 1#how many sources in calibration model
     fov_v = 3 #degrees #the field of view in degrees
 
     #only do stefcal or not
     skip_LM = True
+    dist = True 
+
+    point_sources = np.array([(1,0,0),(0.2,(1*np.pi)/180,(np.pi*0)/180)]) #sets the pointsources in the sky
 
     #contain all the pointsources
-    point_sources = np.zeros((num_sources_v,3))
+    #point_sources = np.zeros((num_sources_v,3))
 
     #generate flux and positions
-    point_sources[:,0] = generate_flux(a = alpha_v,num_sources = num_sources_v,plot=False)
-    point_sources[:,1] = generate_pos(fov = fov_v,num_sources=num_sources_v)
-    point_sources[:,2] = generate_pos(fov = fov_v,num_sources=num_sources_v)
+    #point_sources[:,0] = generate_flux(a = alpha_v,num_sources = num_sources_v,plot=False)
+    #point_sources[:,1] = generate_pos(fov = fov_v,num_sources=num_sources_v)
+    #point_sources[:,2] = generate_pos(fov = fov_v,num_sources=num_sources_v)
    
-    #ra0,dec0 = get_field_center()
+    ra0,dec0 = get_field_center()
     
     #generate true and calibration sky models from point_sources 
-    #meqskymodel(point_sources,num_cal_sources=num_cal_sources_v)
+    meqskymodel(point_sources,num_cal_sources=num_cal_sources_v)
     
     #simulate complete skymodel --- store in CORRECTED_DATA  
     sim_function(cal=False)
@@ -225,7 +230,7 @@ def runall():
     image_settings()
     opt = image_advanced_settings()
 
-    #make images of complete sky and calibrated sky
+    #make images of complete sky and calibrated sky model
     imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
     v.CALORNOT = "cal_model"
     imager.make_image(column="DATA",dirty=options,restore=False)
@@ -251,30 +256,29 @@ def runall():
        v.CALORNOT = ''
     
     #perform STEFcal calibration
-    sim_function(cal=False)
+    if not (dist):
+       sim_function(cal=False)
     
-    cal_function(type_cal="STEF")
-    v.CALORNOT = "cal_app_STEF"
-    imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
-    v.CALORNOT = ''
-    residual()
-    v.CALORNOT = "cal_res_STEF"
-    imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
-    v.CALORNOT = ''
-
-    #perform STEFcal calibration (distilation)
-    sim_function(cal=False)
-    sim_function(cal=True,whole=True)
+       cal_function(type_cal="STEF")
+       v.CALORNOT = "cal_app_STEF"
+       imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
+       v.CALORNOT = ''
+       residual()
+       v.CALORNOT = "cal_res_STEF"
+       imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
+       v.CALORNOT = ''
+    else: #perform STEFcal calibration (distilation)
+       sim_function(cal=True,whole=True)
     
-    cal_function(type_cal="STEF")
-    v.CALORNOT = "cal_app_STEF"
-    imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
-    v.CALORNOT = ''
-    v.CALORNOT = "cal_whole_STEF"
-    imager.make_image(column="DATA",dirty=options,restore=False)
-    v.CALORNOT = ''
-    residual()
-    v.CALORNOT = "cal_res_dist_STEF"
-    imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
-    v.CALORNOT = ''
+       cal_function(type_cal="STEF")
+       v.CALORNOT = "cal_app_STEF"
+       imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
+       v.CALORNOT = ''
+       v.CALORNOT = "cal_whole_STEF"
+       imager.make_image(column="DATA",dirty=options,restore=False)
+       v.CALORNOT = ''
+       residual()
+       v.CALORNOT = "cal_res_dist_STEF"
+       imager.make_image(column="CORRECTED_DATA",dirty=options,restore=False)
+       v.CALORNOT = ''
 
